@@ -8,53 +8,44 @@ import {
     ListItem,
     Button
   } from '@rneui/themed';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
+import {
+  collection,
+  getDocs,
+  getFirestore
+} from 'firebase/firestore'
+import firebaseApp from './firebase'
 
+const db = getFirestore(firebaseApp);
 
 
 /*
  status: ROTA, ATRASADO, ENTREGUE, NAORECEBIDO
 */
 
-const listagem = [{
-  ordem_servico: "1234",
-  cliente: "João do feijão",
-  endereco: "Rua das flores, 123",
-  status: "ROTA",
-  produto: "caneca",
-  nota_fiscal: 3212,
-  exibe: false
-
-},
-{
-  ordem_servico: "4321",
-  cliente: "João do feijão",
-  endereco: "Rua das flores, 123",
-  status: "ATRASADO",
-  produto: "caneca",
-  nota_fiscal: 3212,
-  exibe: true
-},
-{
-  ordem_servico: "2211",
-  cliente: "João do feijão",
-  endereco: "Rua das flores, 123",
-  status: "ENTREGUE",
-  produto: "caneca",
-  nota_fiscal: 3212,
-  exibe: false
-}
-];
-
 export default function App() {
 
-  const [listaEntrega, setListaEntrega] = useState(listagem);
+  const [listaEntrega, setListaEntrega] = useState([]);
 
   function telaConfirmar()
   {
     console.log("tela")
   }
+
+  useEffect( () => {
+    async function lerDados(){
+      const retorno = await getDocs(collection(db, "entregas"));
+      retorno.forEach((item) => {
+        let dados = item.data();
+        dados.exibe = false;
+        listaEntrega.push(dados)
+
+        setListaEntrega([...listaEntrega]);
+      })
+    }
+    lerDados();
+  }, [])
 
   return (
     <SafeAreaProvider >
