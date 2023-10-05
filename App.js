@@ -5,6 +5,7 @@ import { SafeAreaProvider  } from 'react-native-safe-area-context';
 import { 
     Header,
     Icon,
+    Tab,
     ListItem,
     Button
   } from '@rneui/themed';
@@ -13,6 +14,8 @@ import { useEffect, useState } from 'react';
 import {
   collection,
   getDocs,
+  query,
+  where,
   getFirestore
 } from 'firebase/firestore'
 import firebaseApp from './firebase'
@@ -27,24 +30,32 @@ const db = getFirestore(firebaseApp);
 export default function App() {
 
   const [listaEntrega, setListaEntrega] = useState([]);
+  const [statusSelecionado, setStatus] = useState(0);
+
+  //enum
+  const status = ["ROTA", "ATRASADO", "ENTREGUE", "NAORECEBIDO"]
 
   function telaConfirmar()
   {
     console.log("tela")
   }
 
-  useEffect( () => {
-    async function lerDados(){
-      const retorno = await getDocs(collection(db, "entregas"));
-      retorno.forEach((item) => {
-        let dados = item.data();
-        dados.exibe = false;
-        listaEntrega.push(dados)
+  async function lerDados(sel){
 
-        setListaEntrega([...listaEntrega]);
-      })
-    }
-    lerDados();
+    listaEntrega.length = 0;
+    const q = query(collection(db, "entregas"), where("status", "==", status[sel]))
+    const retorno = await getDocs(q);
+    retorno.forEach((item) => {
+      let dados = item.data();
+      dados.exibe = false;
+      listaEntrega.push(dados)
+
+      setListaEntrega([...listaEntrega]);
+    })
+  }
+
+  useEffect( () => {
+    lerDados(0);
   }, [])
 
   return (
@@ -60,6 +71,17 @@ export default function App() {
             style: css.header
           }}
         />
+
+      <Tab value={statusSelecionado} onChange={(valor)=>{
+        setStatus(valor);
+        lerDados(valor);
+        
+      }} dense>
+          <Tab.Item>Rota</Tab.Item>
+          <Tab.Item>Atrasado</Tab.Item>
+          <Tab.Item>Entregue</Tab.Item>
+          <Tab.Item>Não Recebido</Tab.Item>
+      </Tab>  
       
       {listaEntrega.map((item, idx) => {
         return (
