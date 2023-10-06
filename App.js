@@ -27,6 +27,8 @@ import firebaseApp from './firebase'
 
 import * as Location from 'expo-location';
 
+import Camera from './Camera';
+
 const db = getFirestore(firebaseApp);
 
 
@@ -43,6 +45,7 @@ export default function App() {
   const [location, setLocation] = useState(null);
   const [permissao, setPermissao] = useState(false);
   const [selecionado, setSelecionado] = useState(null);
+  const [exibeCamera, setExibeCamera] = useState(false);
 
   //enum
   const status = ["ROTA", "ATRASADO", "ENTREGUE", "NAORECEBIDO"]
@@ -63,6 +66,8 @@ export default function App() {
 
   function tirarFoto(){
     console.log("foto");
+    setExibeCamera(true);
+    setExibe(false)
   }
 
   async function lerDados(sel){
@@ -184,6 +189,8 @@ export default function App() {
           <Dialog.Button title="Cancelar" onPress={() => setExibe(false)} />
         </Dialog.Actions>
       </Dialog>
+
+      { (exibeCamera)? <Camera /> : null }
 
     </SafeAreaProvider >
   );
