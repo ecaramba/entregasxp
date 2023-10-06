@@ -7,6 +7,8 @@ import {
     Icon,
     Tab,
     ListItem,
+    Dialog,
+    CheckBox,
     Button
   } from '@rneui/themed';
 import { useEffect, useState } from 'react';
@@ -16,9 +18,14 @@ import {
   getDocs,
   query,
   where,
+  updateDoc,
+  GeoPoint,
+  doc,
   getFirestore
 } from 'firebase/firestore'
 import firebaseApp from './firebase'
+
+import * as Location from 'expo-location';
 
 const db = getFirestore(firebaseApp);
 
@@ -31,13 +38,31 @@ export default function App() {
 
   const [listaEntrega, setListaEntrega] = useState([]);
   const [statusSelecionado, setStatus] = useState(0);
+  const [exibeDialog, setExibe] = useState(false);
+  const [entregue, setEntregue] = useState(false);
+  const [location, setLocation] = useState(null);
+  const [permissao, setPermissao] = useState(false);
+  const [selecionado, setSelecionado] = useState(null);
 
   //enum
   const status = ["ROTA", "ATRASADO", "ENTREGUE", "NAORECEBIDO"]
 
-  function telaConfirmar()
+  async function telaConfirmar()
   {
     console.log("tela")
+    setExibe(true);
+    let geo = await Location.getCurrentPositionAsync();
+    console.log(geo);
+    setLocation(geo);
+
+    await updateDoc(doc(db, "entregas", selecionado), {
+      location: new GeoPoint(geo.coords.latitude, geo.coords.longitude)
+    })
+
+  }
+
+  function tirarFoto(){
+    console.log("foto");
   }
 
   async function lerDados(sel){
@@ -56,6 +81,18 @@ export default function App() {
 
   useEffect( () => {
     lerDados(0);
+
+    async function permissao()
+    {
+      const geolocation = await Location.getBackgroundPermissionsAsync();
+      if (geolocation.status == "granted")
+      {
+        setPermissao(true);
+      }
+    }
+
+    permissao();
+
   }, [])
 
   return (
@@ -97,7 +134,7 @@ export default function App() {
 
             onPress={()=>{
               listaEntrega[idx].exibe = !listaEntrega[idx].exibe
-
+              setSelecionado(item.ordem_servico)
               setListaEntrega([...listaEntrega])
               console.log("clicou")
             }}
@@ -119,9 +156,39 @@ export default function App() {
       )}
       )}
 
+      <Dialog isVisible={exibeDialog}>
+        <Dialog.Title title='Confirmar a entrega'/>
+            <CheckBox 
+              title="Entregue" 
+              checkedIcon="dot-circle-o"
+              uncheckedIcon="circle-o"
+              checked={entregue === true} 
+              onPress={()=> {
+              setEntregue(true)
+              console.log("sim")
+              }} />
+            <CheckBox 
+              title="Não Entregue" 
+              checkedIcon="dot-circle-o"
+              uncheckedIcon="circle-o"
+              checked={entregue === false} 
+              onPress={()=> {
+              setEntregue(false)
+              console.log("nao")
+              }} />
+
+            <Button title="Tirar Foto" onPress={tirarFoto}/>
+
+        <Dialog.Actions>
+          <Dialog.Button title="Confirmar" color='success'/>
+          <Dialog.Button title="Cancelar" onPress={() => setExibe(false)} />
+        </Dialog.Actions>
+      </Dialog>
+
     </SafeAreaProvider >
   );
 }
+
 
 const css = StyleSheet.create({
   header: {
