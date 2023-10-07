@@ -35,15 +35,13 @@ export default function Camera(props)
         console.log(imagem)
         Alert.alert( JSON.stringify(imagem) );
         
-        
-        const leitor = new FileReader();
-        leitor.readAsDataURL(imagem.uri);
-        leitor.onload = async () => {
-            const arquivo = leitor.result;
-            const foto = ref(storage, "entrega-os1234.jpg");
-            await uploadBytes(foto, arquivo);
+        let arquivo = await fetch(imagem.uri)
+        let binario = await arquivo.blob();
+
+        const foto = ref(storage, "entrega-os1234.jpg");
+        await uploadBytes(foto, binario);
             
-        }
+        
         props.exibe(false);
 
 
