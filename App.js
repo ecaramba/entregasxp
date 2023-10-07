@@ -190,7 +190,7 @@ export default function App() {
         </Dialog.Actions>
       </Dialog>
 
-      { (exibeCamera)? <Camera /> : null }
+      { (exibeCamera)? <Camera exibe={setExibeCamera}  /> : null }
 
     </SafeAreaProvider >
   );
